@@ -10,6 +10,25 @@ module AdaptableInterface
     klass.extend ClassMethods
   end
 
+  # Transforms strings into class name format.
+  # If the given string respond to `camelize` we use the already defined
+  # implementation, otherwise the gem has a internal basic implementation of it.
+  #
+  # @param [String, Symbol] the term to be camelized.
+  # @return [String] a camelized version of the given term.
+  # @example AdaptableInterface.camelize('another_class') returns AnotherClass.
+  def self.camelize(term)
+    string = term.to_s
+    if string.respond_to?(:camelize)
+      string.camelize
+    else
+      string = string.sub(/^[a-z\d]*/) { |match| match.capitalize }
+      string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{$2.capitalize}" }
+      string.gsub!('/'.freeze, '::'.freeze)
+      string
+    end
+  end
+
   # Methods to be included on class level
   module ClassMethods
     # Returns the current adapter. By default it assumes :null.
@@ -29,7 +48,7 @@ module AdaptableInterface
     #   inside top level object Adapters module
     def adapter=(adapter)
       if adapter
-        adapter_class = adapter.to_s.capitalize
+        adapter_class = AdaptableInterface.camelize(adapter)
         begin
           @adapter = self::Adapters.const_get(adapter_class)
         rescue NameError
@@ -38,6 +57,17 @@ module AdaptableInterface
       else
         @adapter = nil
       end
+    end
+
+    # Verify if the adaptable object is using the given adapter.
+    #
+    # @param [Symbol] the adapter name to be tested
+    # @return [Boolean]
+    def using?(adapter_name)
+      current_adapter_name = adapter.name.split('::').last
+      expected_class_name = AdaptableInterface.camelize(adapter_name)
+
+      current_adapter_name == expected_class_name
     end
 
     # Initializes the adaptable object based on current adapter configuration.

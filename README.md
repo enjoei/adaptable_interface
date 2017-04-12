@@ -52,6 +52,16 @@ AdaptableInterface::UndefinedAdapterClassError: cannot find an adapter for Test 
 
 Notice that the adapter name is related to the classes declarated inside `Adapters` module.
 
+Also, you may want to find each adapter is being used:
+
+```ruby
+InstallmentCalculator.adapter = :moip
+InstallmentCalculator.using?(:moip)
+# => true
+InstallmentCalculator.using?(:null)
+# => false
+```
+
 Finally, an adaptable module can be initialized based on a adapter interface:
 
 ```ruby

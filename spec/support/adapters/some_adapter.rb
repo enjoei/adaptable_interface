@@ -1,6 +1,6 @@
 module AdaptableModuleWithAdapters
   module Adapters
-    class Another
+    class SomeAdapter
     end
   end
 end
